@@ -26,15 +26,18 @@ public class MainActivity extends AppCompatActivity {
         binding=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        setSupportActionBar(binding.toolbar);
+
     }
 
-    //Menü koda bağlamak için onCreateOptionsMenu ve onOptionsItemSelected metodlarını kullanıyoruz.
+    //Menüyü koda bağlamak için onCreateOptionsMenu ve onOptionsItemSelected metodlarını kullanıyoruz.
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater menuInflater=getMenuInflater();
         menuInflater.inflate(R.menu.art_menu,menu);
         return super.onCreateOptionsMenu(menu);
     }
+
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {

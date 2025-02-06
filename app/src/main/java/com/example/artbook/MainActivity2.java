@@ -46,6 +46,8 @@ public class MainActivity2 extends AppCompatActivity {
         binding = ActivityMain2Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        registerLauncher();
+
 
     }
 
@@ -54,9 +56,106 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     public void selectImage(View view) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            //Android 33+ -> READ_MEDIA_IMAGES kullanılır
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                //İzin verilmedi
+                //İzin isteme mantığı kullanıcıya gösterilsin mi
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_MEDIA_IMAGES)) {
+                    Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE).setAction("Give Permission", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            //İzin iste
+                            permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
+                        }
+                    }).show();
+                } else {
+                    //İzin iste
+                    permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
+                }
+            } else {
+                //İzin verildi galeriye git
+                Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                activityResultLauncher.launch(intentToGallery);
+            }
 
+
+        } else {
+            //Android 32- -> READ_EXTERNAL_STORAGE
+
+            //ActivityResultLauncherları tanımlamak için metot oluşturuyoruz
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                //İzin verilmedi
+                //İzin isteme mantığı kullanıcıya açıklansın mı
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE).setAction("Give Permission", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            //İzin iste
+                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+                        }
+                    }).show();
+                } else {
+                    //İzin iste
+                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+                }
+            } else {
+                //İzin verildi galeriye git
+                Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                activityResultLauncher.launch(intentToGallery);
+            }
+
+        }
 
     }
 
+
+    private void registerLauncher() {
+
+        //Kullanıcı galeriye gitti mi dönen sonucu almak için ActivityResultLauncher oluşturuyoruz
+        activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+            @Override
+            public void onActivityResult(ActivityResult result) {
+                //Kullanıcı galeriye gitti ve resim seçti mi kontrol et
+                if (result.getResultCode() == RESULT_OK) {
+                    //Kullanıcı resim seçti
+                    Intent intentFromResult = result.getData();  //intenti verir
+                    if (intentFromResult != null) {
+                        Uri imageData = intentFromResult.getData();   //kullanıcının seçtiği veri nerede kayıtlı onu verir
+                        try {
+                            if (Build.VERSION.SDK_INT >= 28) {
+                                //Uri yi bitmap e çevirmek için ImageDecoder kullanılır
+                                ImageDecoder.Source source = ImageDecoder.createSource(MainActivity2.this.getContentResolver(), imageData);
+                                selectedImage = ImageDecoder.decodeBitmap(source);
+                                binding.imageView.setImageBitmap(selectedImage);
+                            } else {
+                                selectedImage = MediaStore.Images.Media.getBitmap(MainActivity2.this.getContentResolver(), imageData);
+                                binding.imageView.setImageBitmap(selectedImage);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                }
+
+            }
+        });
+
+        //permissionLauncher oluşturularak izin isteme işlemi gerçekleştirilir
+        permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
+            @Override
+            public void onActivityResult(Boolean result) {
+                if (result) {
+                    //İzin verildi
+                    Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    activityResultLauncher.launch(intentToGallery);
+                } else {
+                    //İzin verilmedi
+                    Toast.makeText(MainActivity2.this, "Permission needed!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
 
 }
