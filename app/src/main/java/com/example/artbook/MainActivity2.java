@@ -31,6 +31,8 @@ import com.example.artbook.databinding.ActivityMain2Binding;
 import com.example.artbook.databinding.ActivityMainBinding;
 import com.google.android.material.snackbar.Snackbar;
 
+import java.io.ByteArrayOutputStream;
+
 public class MainActivity2 extends AppCompatActivity {
 
     private ActivityMain2Binding binding;
@@ -52,7 +54,32 @@ public class MainActivity2 extends AppCompatActivity {
     }
 
     public void save(View view) {
+        String name=binding.nameText.getText().toString();
+        String artistName=binding.artistText.getText().toString();
+        String year=binding.yearText.getText().toString();
+        Bitmap smallImage=makeSmallerImage(selectedImage,300);
 
+        //Resmi veritabanına kaydetmek için byte dizisine çeviriyoruz
+        ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+        smallImage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
+        byte[] byteArray=outputStream.toByteArray();
+
+    }
+
+    //Resmi küçültmek için metot oluşturuyoruz
+    public Bitmap makeSmallerImage(Bitmap image,int maxSize){
+        int width=image.getWidth();
+        int height=image.getHeight();
+        float bitmapRatio=(float)width/(float)height;
+        if(bitmapRatio>1){  //resim yatay
+            width=maxSize;
+            height=(int)(width/bitmapRatio);
+        }
+        else{    //resim dikey
+            height=maxSize;
+            width=(int)(height*bitmapRatio);
+        }
+        return image.createScaledBitmap(image,width,height,true);
     }
 
     public void selectImage(View view) {
