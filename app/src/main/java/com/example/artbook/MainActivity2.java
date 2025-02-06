@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 import android.graphics.Bitmap;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
@@ -38,8 +39,9 @@ public class MainActivity2 extends AppCompatActivity {
     private ActivityMain2Binding binding;
     ActivityResultLauncher<Intent> activityResultLauncher;
     ActivityResultLauncher<String> permissionLauncher;
-
     Bitmap selectedImage;
+
+    SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,8 +52,8 @@ public class MainActivity2 extends AppCompatActivity {
 
         registerLauncher();
 
-
     }
+
 
     public void save(View view) {
         String name=binding.nameText.getText().toString();
@@ -63,6 +65,26 @@ public class MainActivity2 extends AppCompatActivity {
         ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
         smallImage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
         byte[] byteArray=outputStream.toByteArray();
+
+        try{
+            db=this.openOrCreateDatabase("Arts",MODE_PRIVATE,null);
+            db.execSQL("CREATE TABLE IF NOT EXISTS art(id INTEGER PRIMARY KEY,artName VARCHAR,painterName VARCHAR,year VARCHAR,image BLOB)");
+            String sqlString="INSERT INTO arts(artName,painterName,year,image) VALUES(?,?,?,?)";
+            SQLiteStatement sqLiteStatement=db.compileStatement(sqlString);
+            sqLiteStatement.bindString(1,name);
+            sqLiteStatement.bindString(2,artistName);
+            sqLiteStatement.bindString(3,year);
+            sqLiteStatement.bindBlob(4,byteArray);
+
+
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+        Intent intent=new Intent(MainActivity2.this,MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
+
+
 
     }
 
