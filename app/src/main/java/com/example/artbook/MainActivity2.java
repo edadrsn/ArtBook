@@ -66,13 +66,15 @@ public class MainActivity2 extends AppCompatActivity {
                         //İzin iste
 
                     }
-                });
+                }).show();
             } else {
                 //İzin iste
 
             }
         } else {
             //İzin verildi galeriye git
+            //Galeriye git görsel al geri gel
+            Intent intent=new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         }
 
 
