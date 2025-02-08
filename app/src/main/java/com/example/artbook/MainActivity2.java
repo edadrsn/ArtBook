@@ -36,175 +36,28 @@ import java.io.ByteArrayOutputStream;
 
 public class MainActivity2 extends AppCompatActivity {
 
-    private ActivityMain2Binding binding;
-    ActivityResultLauncher<Intent> activityResultLauncher;
-    ActivityResultLauncher<String> permissionLauncher;
-    Bitmap selectedImage;
 
-    SQLiteDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        binding = ActivityMain2Binding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
 
-        registerLauncher();
 
     }
 
 
     public void save(View view) {
-        String name=binding.nameText.getText().toString();
-        String artistName=binding.artistText.getText().toString();
-        String year=binding.yearText.getText().toString();
-        Bitmap smallImage=makeSmallerImage(selectedImage,300);
-
-        //Resmi veritabanına kaydetmek için byte dizisine çeviriyoruz
-        ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
-        smallImage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
-        byte[] byteArray=outputStream.toByteArray();
-
-        try{
-            db=this.openOrCreateDatabase("Arts",MODE_PRIVATE,null);
-            db.execSQL("CREATE TABLE IF NOT EXISTS art(id INTEGER PRIMARY KEY,artName VARCHAR,painterName VARCHAR,year VARCHAR,image BLOB)");
-            String sqlString="INSERT INTO arts(artName,painterName,year,image) VALUES(?,?,?,?)";
-            SQLiteStatement sqLiteStatement=db.compileStatement(sqlString);
-            sqLiteStatement.bindString(1,name);
-            sqLiteStatement.bindString(2,artistName);
-            sqLiteStatement.bindString(3,year);
-            sqLiteStatement.bindBlob(4,byteArray);
-
-
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-        Intent intent=new Intent(MainActivity2.this,MainActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
 
 
 
     }
 
-    //Resmi küçültmek için metot oluşturuyoruz
-    public Bitmap makeSmallerImage(Bitmap image,int maxSize){
-        int width=image.getWidth();
-        int height=image.getHeight();
-        float bitmapRatio=(float)width/(float)height;
-        if(bitmapRatio>1){  //resim yatay
-            width=maxSize;
-            height=(int)(width/bitmapRatio);
-        }
-        else{    //resim dikey
-            height=maxSize;
-            width=(int)(height*bitmapRatio);
-        }
-        return image.createScaledBitmap(image,width,height,true);
-    }
 
     public void selectImage(View view) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            //Android 33+ -> READ_MEDIA_IMAGES kullanılır
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
-                //İzin verilmedi
-                //İzin isteme mantığı kullanıcıya gösterilsin mi
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_MEDIA_IMAGES)) {
-                    Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE).setAction("Give Permission", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            //İzin iste
-                            permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
-                        }
-                    }).show();
-                } else {
-                    //İzin iste
-                    permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
-                }
-            } else {
-                //İzin verildi galeriye git
-                Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                activityResultLauncher.launch(intentToGallery);
-            }
 
-
-        } else {
-            //Android 32- -> READ_EXTERNAL_STORAGE
-
-            //ActivityResultLauncherları tanımlamak için metot oluşturuyoruz
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                //İzin verilmedi
-                //İzin isteme mantığı kullanıcıya açıklansın mı
-                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE).setAction("Give Permission", new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            //İzin iste
-                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
-                        }
-                    }).show();
-                } else {
-                    //İzin iste
-                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
-                }
-            } else {
-                //İzin verildi galeriye git
-                Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                activityResultLauncher.launch(intentToGallery);
-            }
-
-        }
 
     }
 
-
-    private void registerLauncher() {
-
-        //Kullanıcı galeriye gitti mi dönen sonucu almak için ActivityResultLauncher oluşturuyoruz
-        activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
-            @Override
-            public void onActivityResult(ActivityResult result) {
-                //Kullanıcı galeriye gitti ve resim seçti mi kontrol et
-                if (result.getResultCode() == RESULT_OK) {
-                    //Kullanıcı resim seçti
-                    Intent intentFromResult = result.getData();  //intenti verir
-                    if (intentFromResult != null) {
-                        Uri imageData = intentFromResult.getData();   //kullanıcının seçtiği veri nerede kayıtlı onu verir
-                        try {
-                            if (Build.VERSION.SDK_INT >= 28) {
-                                //Uri yi bitmap e çevirmek için ImageDecoder kullanılır
-                                ImageDecoder.Source source = ImageDecoder.createSource(MainActivity2.this.getContentResolver(), imageData);
-                                selectedImage = ImageDecoder.decodeBitmap(source);
-                                binding.imageView.setImageBitmap(selectedImage);
-                            } else {
-                                selectedImage = MediaStore.Images.Media.getBitmap(MainActivity2.this.getContentResolver(), imageData);
-                                binding.imageView.setImageBitmap(selectedImage);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                }
-
-            }
-        });
-
-        //permissionLauncher oluşturularak izin isteme işlemi gerçekleştirilir
-        permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
-            @Override
-            public void onActivityResult(Boolean result) {
-                if (result) {
-                    //İzin verildi
-                    Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                    activityResultLauncher.launch(intentToGallery);
-                } else {
-                    //İzin verilmedi
-                    Toast.makeText(MainActivity2.this, "Permission needed!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
 
 }
