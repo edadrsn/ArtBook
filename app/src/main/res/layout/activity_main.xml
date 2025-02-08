@@ -6,18 +6,18 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#E194EF"
+    android:background="#F8E7F6"
     tools:context=".MainActivity">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
+        android:background="#4B164C"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="ArtBook Java"
+        app:titleTextColor="#DD88CF"
         tools:ignore="MissingConstraints"
-        android:layout_marginTop="30dp"
         tools:layout_editor_absoluteX="0dp"
         tools:layout_editor_absoluteY="16dp" />
 
