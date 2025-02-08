@@ -31,9 +31,8 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         binding=ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         setSupportActionBar(binding.toolbar);
-        
+
 
     }
 

@@ -37,7 +37,6 @@ import java.io.ByteArrayOutputStream;
 public class MainActivity2 extends AppCompatActivity {
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,11 +49,31 @@ public class MainActivity2 extends AppCompatActivity {
     public void save(View view) {
 
 
-
     }
 
 
     public void selectImage(View view) {
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            //İzin verilmedi
+
+            //İzin isteme mantığı kullanıcıya açıklansın mı?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                //Snackbar ile kullanıcıya açıklama yap
+                Snackbar.make(view,"Permission needed for gallery",Snackbar.LENGTH_INDEFINITE).setAction("Give Permission",new View.OnClickListener(){
+                    @Override
+                    public void onClick(View view){
+                        //İzin iste
+
+                    }
+                });
+            } else {
+                //İzin iste
+
+            }
+        } else {
+            //İzin verildi galeriye git
+        }
 
 
     }
