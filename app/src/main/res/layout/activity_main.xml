@@ -13,6 +13,7 @@
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
+        android:layout_marginTop="30dp"
         android:background="#4B164C"
         app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
         app:title="ArtBook Java"
