@@ -61,81 +61,112 @@ public class MainActivity2 extends AppCompatActivity {
 
     public void selectImage(View view) {
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            //İzin verilmedi
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.TIRAMISU){
+            //Android 33+ -->READ_MEDIA_IMAGES
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                //İzin verilmedi
 
-            //İzin isteme mantığı kullanıcıya açıklansın mı?
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                //Snackbar ile kullanıcıya açıklama yap
-                Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE).setAction("Give Permission", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        //İzin iste
+                //İzin isteme mantığı kullanıcıya açıklansın mı?
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_MEDIA_IMAGES)) {
+                    //Snackbar ile kullanıcıya açıklama yap
+                    Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE).setAction("Give Permission", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            //İzin iste
+                            permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
 
-                    }
-                }).show();
+                        }
+                    }).show();
+                } else {
+                    //İzin iste
+                    permissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES);
+
+                }
             } else {
-                //İzin iste
-
+                //İzin verildi galeriye git
+                //Galeriye git görsel al geri gel
+                Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                activityResultLauncher.launch(intentToGallery);
             }
-        } else {
-            //İzin verildi galeriye git
-            //Galeriye git görsel al geri gel
-            Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+
+
+        }
+
+        else{
+            //Android 32- -->READ_EXTERNAL_STORAGE
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                //İzin verilmedi
+
+                //İzin isteme mantığı kullanıcıya açıklansın mı?
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    //Snackbar ile kullanıcıya açıklama yap
+                    Snackbar.make(view, "Permission needed for gallery", Snackbar.LENGTH_INDEFINITE).setAction("Give Permission", new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            //İzin iste
+                            permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+
+                        }
+                    }).show();
+                } else {
+                    //İzin iste
+                    permissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+
+                }
+            } else {
+                //İzin verildi galeriye git
+                //Galeriye git görsel al geri gel
+                Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                activityResultLauncher.launch(intentToGallery);
+            }
+
+
         }
 
     }
 
-    private void registerLauncher(){
+    private void registerLauncher() {
         //Galeriye gitmek için
-        activityResultLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
-                if(result.getResultCode()==RESULT_OK){
-                    Intent intentFromResult=result.getData();
-                    if(intentFromResult!=null){
-                        Uri imageData=intentFromResult.getData();
+                if (result.getResultCode() == RESULT_OK) {
+                    Intent intentFromResult = result.getData();
+                    if (intentFromResult != null) {
+                        Uri imageData = intentFromResult.getData();
                         try {
                             if (Build.VERSION.SDK_INT >= 28) {
                                 //Uri yı bitmapa çevirmek
                                 ImageDecoder.Source source = ImageDecoder.createSource(MainActivity2.this.getContentResolver(), imageData);
                                 selectedImage = ImageDecoder.decodeBitmap(source);
                                 binding.imageView.setImageBitmap(selectedImage);
-                            }else{
-                                selectedImage=MediaStore.Images.Media.getBitmap(MainActivity2.this.getContentResolver(),imageData);
+                            } else {
+                                selectedImage = MediaStore.Images.Media.getBitmap(MainActivity2.this.getContentResolver(), imageData);
                                 binding.imageView.setImageBitmap(selectedImage);
                             }
-                        }
-                        catch(Exception e){
+                        } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
                 }
-                else{
-
-                }
-
             }
         });
 
         //İzin istemek için
-        permissionLauncher=registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
+        permissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), new ActivityResultCallback<Boolean>() {
             @Override
             public void onActivityResult(Boolean result) {
-                if(result){
+                if (result) {
                     //İzin verildi
-                    Intent intentToGallery=new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                }
-                else{
+                    Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    activityResultLauncher.launch(intentToGallery);
+                } else {
                     //İzin verilmedi
-                    Toast.makeText(MainActivity2.this,"Permission needed!",Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity2.this, "Permission needed!", Toast.LENGTH_SHORT).show();
                 }
 
             }
         });
-
-
-
 
 
     }
