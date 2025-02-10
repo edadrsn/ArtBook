@@ -37,12 +37,12 @@ public class MainActivity extends AppCompatActivity {
 
         artArrayList = new ArrayList<Art>();
 
-        getdata();
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ArtAdapter(artArrayList);
         binding.recyclerView.setAdapter(adapter);
 
+        getdata();
 
     }
 
@@ -58,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
                 int id = cursor.getInt(idIx);
                 Art art = new Art(name, id);
                 artArrayList.add(art);
-
             }
             adapter.notifyDataSetChanged();
+
             cursor.close();
         } catch (Exception e) {
             e.printStackTrace();

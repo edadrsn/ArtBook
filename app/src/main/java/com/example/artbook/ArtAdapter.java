@@ -19,23 +19,21 @@ public class ArtAdapter extends RecyclerView.Adapter<ArtAdapter.ArtHolder> {
         this.artArrayList = artArrayList;
     }
 
-    @NonNull
     @Override
-    public ArtHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        RecyclerRowBinding recyclerRowBinding = RecyclerRowBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-        return new ArtHolder(recyclerRowBinding);
+    public ArtHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        RecyclerRowBinding binding = RecyclerRowBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
+        return new ArtHolder(binding);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ArtHolder holder, int position) {
+    public void onBindViewHolder(ArtAdapter.ArtHolder holder, int position) {
         holder.binding.recyclerViewTextView.setText(artArrayList.get(position).name);
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(holder.itemView.getContext(), MainActivity2.class);
-                intent.putExtra("info", "old");
-                intent.putExtra("art", holder.getAdapterPosition());
-                intent.putExtra("artId", holder.getAdapterPosition());
+                intent.putExtra("artId", artArrayList.get(position).id);
+                intent.putExtra("info","old");
                 holder.itemView.getContext().startActivity(intent);
             }
         });
@@ -48,7 +46,7 @@ public class ArtAdapter extends RecyclerView.Adapter<ArtAdapter.ArtHolder> {
     }
 
     public class ArtHolder extends RecyclerView.ViewHolder {
-        RecyclerRowBinding binding;
+        private RecyclerRowBinding binding;
 
         public ArtHolder(RecyclerRowBinding binding) {
             super(binding.getRoot());

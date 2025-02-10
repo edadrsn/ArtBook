@@ -2,10 +2,10 @@ package com.example.artbook;
 
 public class Art {
     String name;
-    int image;
+    int id;
 
-    public Art(String name, int image) {
+    public Art(String name, int id) {
         this.name = name;
-        this.image = image;
+        this.id = id;
     }
 }

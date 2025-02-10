@@ -1,5 +1,6 @@
 package com.example.artbook;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -57,17 +58,21 @@ public class MainActivity2 extends AppCompatActivity {
 
         Intent intent = getIntent();
         String info = intent.getStringExtra("info");
-        if (info.equals("new")) {
+        if (info.matches("new")) {
             //Yeni bir resim ekleme
             binding.nameText.setText("");
             binding.artistText.setText("");
             binding.yearText.setText("");
             binding.btnSave.setVisibility(View.VISIBLE);
-            binding.imageView.setImageResource(R.drawable.select_image);
+
+            Bitmap selectImage = BitmapFactory.decodeResource(getApplicationContext().getResources(),R.drawable.select_image);
+            binding.imageView.setImageBitmap(selectImage);
 
         } else {
-            int artId = intent.getIntExtra("artId", 0);
+
+            int artId = intent.getIntExtra("artId", 1);
             binding.btnSave.setVisibility(View.INVISIBLE);
+
             try {
                 Cursor cursor = database.rawQuery("SELECT * FROM arts WHERE id=?", new String[]{String.valueOf(artId)});
                 int artNameIx = cursor.getColumnIndex("artname");
@@ -78,6 +83,7 @@ public class MainActivity2 extends AppCompatActivity {
                     binding.nameText.setText(cursor.getString(artNameIx));
                     binding.artistText.setText(cursor.getString(painterNameIx));
                     binding.yearText.setText(cursor.getString(yearIx));
+
                     byte[] bytes = cursor.getBlob(imageIx);
                     Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                     binding.imageView.setImageBitmap(bitmap);
@@ -105,8 +111,8 @@ public class MainActivity2 extends AppCompatActivity {
         byte[] byteArray = outputStream.toByteArray();
 
         try {
+            database = this.openOrCreateDatabase("Arts",MODE_PRIVATE,null);
             database.execSQL("CREATE TABLE IF NOT EXISTS arts(id INTEGER PRIMARY KEY,artname VARCHAR,paintername VARCHAR,year VARCHAR,image BLOB)");
-
 
             //SQLiteStatement ile veritabanına veri ekliyoruz
             String sqlString = "INSERT INTO arts(artname,paintername,year,image) VALUES(?,?,?,?)";
@@ -122,7 +128,7 @@ public class MainActivity2 extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        Intent intent = new Intent(MainActivity2.this, MainActivity2.class);
+        Intent intent = new Intent(MainActivity2.this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //içinde bulunduğum activity de dahil bütün activityleri kapat sadece gideceğim activityi aç
         startActivity(intent);
 
@@ -143,7 +149,7 @@ public class MainActivity2 extends AppCompatActivity {
             width = (int) (height * bitmapRatio);
         }
 
-        return image.createScaledBitmap(image, width, height, true);
+        return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
     //Galeriye gitmek için bir metod oluşturduk
@@ -215,7 +221,7 @@ public class MainActivity2 extends AppCompatActivity {
         activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
             @Override
             public void onActivityResult(ActivityResult result) {
-                if (result.getResultCode() == RESULT_OK) {
+                if (result.getResultCode() == Activity.RESULT_OK) {
                     Intent intentFromResult = result.getData();
                     if (intentFromResult != null) {
                         Uri imageData = intentFromResult.getData();
