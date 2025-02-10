@@ -40,6 +40,7 @@ public class MainActivity2 extends AppCompatActivity {
     ActivityResultLauncher<Intent> activityResultLauncher;  //Galeriye gitmek için
     ActivityResultLauncher<String> permissionLauncher;      //İzin istemek için
     Bitmap selectedImage;
+    SQLiteDatabase database;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +57,7 @@ public class MainActivity2 extends AppCompatActivity {
     public void save(View view) {
         String name = binding.nameText.getText().toString();
         String artistName = binding.artistText.getText().toString();
-        String tear = binding.yearText.getText().toString();
+        String year = binding.yearText.getText().toString();
         Bitmap smallImage=makeSmallerImage(selectedImage,300);
 
 
@@ -64,6 +65,30 @@ public class MainActivity2 extends AppCompatActivity {
         ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
         smallImage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
         byte[] byteArray=outputStream.toByteArray();
+
+        try{
+            database=this.openOrCreateDatabase("Arts",MODE_PRIVATE,null);
+            database.execSQL("CREATE TABLE IF NOT EXISTS arts(id INTEGER PRIMARY KEY,artname VARCHAR,paintername VARCHAR,year VARCHAR,image BLOB)");
+
+
+            //SQLiteStatement ile veritabanına veri ekliyoruz
+            String sqlString="INSERT INTO arts(artname,paintername,year,image) VALUES(?,?,?,?)";
+            SQLiteStatement sqLiteStatement=database.compileStatement(sqlString);
+            sqLiteStatement.bindString(1,name);
+            sqLiteStatement.bindString(2,artistName);
+            sqLiteStatement.bindString(3,year);
+            sqLiteStatement.bindBlob(4,byteArray);
+            sqLiteStatement.execute();
+
+
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+
+        Intent intent=new Intent(MainActivity2.this, MainActivity2.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //içinde bulunduğum activity de dahil bütün activityleri kapat sadece gideceğim activityi aç
+        startActivity(intent);
 
     }
 
@@ -85,7 +110,6 @@ public class MainActivity2 extends AppCompatActivity {
 
         return image.createScaledBitmap(image, width, height, true);
     }
-
 
     public void selectImage(View view) {
 
