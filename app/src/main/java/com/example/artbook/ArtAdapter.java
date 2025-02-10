@@ -12,16 +12,17 @@ import com.example.artbook.databinding.RecyclerRowBinding;
 
 import java.util.ArrayList;
 
-public class ArtAdapter extends RecyclerView.Adapter<ArtAdapter.ArtHolder>{
+public class ArtAdapter extends RecyclerView.Adapter<ArtAdapter.ArtHolder> {
     ArrayList<Art> artArrayList;
-    public ArtAdapter(ArrayList<Art> artArrayList){
-        this.artArrayList=artArrayList;
+
+    public ArtAdapter(ArrayList<Art> artArrayList) {
+        this.artArrayList = artArrayList;
     }
 
     @NonNull
     @Override
     public ArtHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        RecyclerRowBinding recyclerRowBinding=RecyclerRowBinding.inflate(LayoutInflater.from(parent.getContext()),parent,false);
+        RecyclerRowBinding recyclerRowBinding = RecyclerRowBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
         return new ArtHolder(recyclerRowBinding);
     }
 
@@ -31,9 +32,10 @@ public class ArtAdapter extends RecyclerView.Adapter<ArtAdapter.ArtHolder>{
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(holder.itemView.getContext(),MainActivity2.class);
-                intent.putExtra("info","old");
-                intent.putExtra("art",holder.getAdapterPosition());
+                Intent intent = new Intent(holder.itemView.getContext(), MainActivity2.class);
+                intent.putExtra("info", "old");
+                intent.putExtra("art", holder.getAdapterPosition());
+                intent.putExtra("artId", holder.getAdapterPosition());
                 holder.itemView.getContext().startActivity(intent);
             }
         });
@@ -45,11 +47,12 @@ public class ArtAdapter extends RecyclerView.Adapter<ArtAdapter.ArtHolder>{
         return artArrayList.size();
     }
 
-    public class ArtHolder extends RecyclerView.ViewHolder{
+    public class ArtHolder extends RecyclerView.ViewHolder {
         RecyclerRowBinding binding;
+
         public ArtHolder(RecyclerRowBinding binding) {
             super(binding.getRoot());
-            this.binding=binding;
+            this.binding = binding;
         }
     }
 }

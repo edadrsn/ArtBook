@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.ImageDecoder;
 import android.net.Uri;
 import android.os.Build;
@@ -42,6 +43,7 @@ public class MainActivity2 extends AppCompatActivity {
     Bitmap selectedImage;
     SQLiteDatabase database;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,47 +53,80 @@ public class MainActivity2 extends AppCompatActivity {
 
         registerLauncher();  //Launcherları register ediyoruz ki kullanabilelim
 
+        database = this.openOrCreateDatabase("Arts", MODE_PRIVATE, null);
+
+        Intent intent = getIntent();
+        String info = intent.getStringExtra("info");
+        if (info.equals("new")) {
+            //Yeni bir resim ekleme
+            binding.nameText.setText("");
+            binding.artistText.setText("");
+            binding.yearText.setText("");
+            binding.btnSave.setVisibility(View.VISIBLE);
+            binding.imageView.setImageResource(R.drawable.select_image);
+
+        } else {
+            int artId = intent.getIntExtra("artId", 0);
+            binding.btnSave.setVisibility(View.INVISIBLE);
+            try {
+                Cursor cursor = database.rawQuery("SELECT * FROM arts WHERE id=?", new String[]{String.valueOf(artId)});
+                int artNameIx = cursor.getColumnIndex("artname");
+                int painterNameIx = cursor.getColumnIndex("paintername");
+                int yearIx = cursor.getColumnIndex("year");
+                int imageIx = cursor.getColumnIndex("image");
+                while (cursor.moveToNext()) {
+                    binding.nameText.setText(cursor.getString(artNameIx));
+                    binding.artistText.setText(cursor.getString(painterNameIx));
+                    binding.yearText.setText(cursor.getString(yearIx));
+                    byte[] bytes = cursor.getBlob(imageIx);
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    binding.imageView.setImageBitmap(bitmap);
+                }
+                cursor.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
+    //Kaydet butonuna tıklandığında çalışacak metod oluşturduk
     public void save(View view) {
         String name = binding.nameText.getText().toString();
         String artistName = binding.artistText.getText().toString();
         String year = binding.yearText.getText().toString();
-        Bitmap smallImage=makeSmallerImage(selectedImage,300);
+        Bitmap smallImage = makeSmallerImage(selectedImage, 300);
 
 
         //Resmi SQLe kaydetmek için byte arraye çeviriyoruz
-        ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
-        smallImage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
-        byte[] byteArray=outputStream.toByteArray();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        smallImage.compress(Bitmap.CompressFormat.PNG, 50, outputStream);
+        byte[] byteArray = outputStream.toByteArray();
 
-        try{
-            database=this.openOrCreateDatabase("Arts",MODE_PRIVATE,null);
+        try {
             database.execSQL("CREATE TABLE IF NOT EXISTS arts(id INTEGER PRIMARY KEY,artname VARCHAR,paintername VARCHAR,year VARCHAR,image BLOB)");
 
 
             //SQLiteStatement ile veritabanına veri ekliyoruz
-            String sqlString="INSERT INTO arts(artname,paintername,year,image) VALUES(?,?,?,?)";
-            SQLiteStatement sqLiteStatement=database.compileStatement(sqlString);
-            sqLiteStatement.bindString(1,name);
-            sqLiteStatement.bindString(2,artistName);
-            sqLiteStatement.bindString(3,year);
-            sqLiteStatement.bindBlob(4,byteArray);
+            String sqlString = "INSERT INTO arts(artname,paintername,year,image) VALUES(?,?,?,?)";
+            SQLiteStatement sqLiteStatement = database.compileStatement(sqlString);
+            sqLiteStatement.bindString(1, name);
+            sqLiteStatement.bindString(2, artistName);
+            sqLiteStatement.bindString(3, year);
+            sqLiteStatement.bindBlob(4, byteArray);
             sqLiteStatement.execute();
 
 
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
-        Intent intent=new Intent(MainActivity2.this, MainActivity2.class);
+        Intent intent = new Intent(MainActivity2.this, MainActivity2.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);  //içinde bulunduğum activity de dahil bütün activityleri kapat sadece gideceğim activityi aç
         startActivity(intent);
 
     }
-
 
     //Resmi küçültmek için bir metod oluşturduk
     public Bitmap makeSmallerImage(Bitmap image, int maxSize) {
@@ -111,6 +146,7 @@ public class MainActivity2 extends AppCompatActivity {
         return image.createScaledBitmap(image, width, height, true);
     }
 
+    //Galeriye gitmek için bir metod oluşturduk
     public void selectImage(View view) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -173,6 +209,7 @@ public class MainActivity2 extends AppCompatActivity {
 
     }
 
+    //Launcherları register etmek için bir metod oluşturduk
     private void registerLauncher() {
         //Galeriye gitmek için
         activityResultLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {

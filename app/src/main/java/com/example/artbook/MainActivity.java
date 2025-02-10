@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         getdata();
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter=new ArtAdapter(artArrayList);
+        adapter = new ArtAdapter(artArrayList);
         binding.recyclerView.setAdapter(adapter);
 
 
