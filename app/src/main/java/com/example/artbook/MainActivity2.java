@@ -48,20 +48,48 @@ public class MainActivity2 extends AppCompatActivity {
         binding = ActivityMain2Binding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
-        registerLauncher();
+        registerLauncher();  //Launcherları register ediyoruz ki kullanabilelim
 
     }
 
 
     public void save(View view) {
+        String name = binding.nameText.getText().toString();
+        String artistName = binding.artistText.getText().toString();
+        String tear = binding.yearText.getText().toString();
+        Bitmap smallImage=makeSmallerImage(selectedImage,300);
 
 
+        //Resmi SQLe kaydetmek için byte arraye çeviriyoruz
+        ByteArrayOutputStream outputStream=new ByteArrayOutputStream();
+        smallImage.compress(Bitmap.CompressFormat.PNG,50,outputStream);
+        byte[] byteArray=outputStream.toByteArray();
+
+    }
+
+
+    //Resmi küçültmek için bir metod oluşturduk
+    public Bitmap makeSmallerImage(Bitmap image, int maxSize) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+        float bitmapRatio = (float) (width / height);
+        if (bitmapRatio > 1) {
+            //Resim yatay
+            width = maxSize;
+            height = (int) (width / bitmapRatio);
+        } else {
+            //Resim dikey
+            height = maxSize;
+            width = (int) (height * bitmapRatio);
+        }
+
+        return image.createScaledBitmap(image, width, height, true);
     }
 
 
     public void selectImage(View view) {
 
-        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.TIRAMISU){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             //Android 33+ -->READ_MEDIA_IMAGES
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
                 //İzin verilmedi
@@ -88,11 +116,7 @@ public class MainActivity2 extends AppCompatActivity {
                 Intent intentToGallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 activityResultLauncher.launch(intentToGallery);
             }
-
-
-        }
-
-        else{
+        } else {
             //Android 32- -->READ_EXTERNAL_STORAGE
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 //İzin verilmedi
